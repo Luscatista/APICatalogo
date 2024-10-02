@@ -52,6 +52,7 @@ namespace APICatalogo.Controllers
             return new CreatedAtRouteResult("ObterProduto",
                 new { id = produto.ProdutoId }, produto);
         }
+
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Produto produto)
         {
