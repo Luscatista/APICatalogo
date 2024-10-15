@@ -12,10 +12,12 @@ namespace APICatalogo.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<CategoriasController> _logger;
 
-        public CategoriasController(AppDbContext context)
+        public CategoriasController(AppDbContext context, ILogger<CategoriasController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet("produtos")]
@@ -32,15 +34,14 @@ namespace APICatalogo.Controllers
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]
-        public async Task<ActionResult<Categoria>> GetAsync(int id)
+        public ActionResult<Categoria> Get(int id)
         {
 
-            throw new Exception("Exceção ao retornar a categoria pelo Id");
-
-            var categoria = await _context.Categorias.AsNoTracking().FirstOrDefaultAsync(p => p.CategoriaId == id);
+            var categoria = _context.Categorias.FirstOrDefaultAsync(p => p.CategoriaId == id);
 
             if (categoria is null)
             {
+                _logger.LogWarning($"Categoria com Id = {id} não encontrada...");
                 return NotFound("Categoria não encontrada....");
             }
 
@@ -51,7 +52,10 @@ namespace APICatalogo.Controllers
         public ActionResult Post(Categoria categoria)
         {
             if (categoria is null)
-                return BadRequest();
+            {
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos...");
+            }
 
             _context.Categorias.Add(categoria);
             _context.SaveChanges();
@@ -65,7 +69,8 @@ namespace APICatalogo.Controllers
         {
             if (id != categoria.CategoriaId)
             {
-                return BadRequest();
+                _logger.LogWarning($"Dados inválidos...");
+                return BadRequest("Dados inválidos...");
             }
 
             _context.Entry(categoria).State = EntityState.Modified;
@@ -82,7 +87,8 @@ namespace APICatalogo.Controllers
 
             if (categoria == null)
             {
-                return NotFound("Categoria não localizada...");
+                _logger.LogWarning($"Categoria com Id = {id} não encontrada...");
+                return NotFound("Categoria com Id = {id} não encontrada...");
             }
             _context.Categorias.Remove(categoria);
             _context.SaveChanges();

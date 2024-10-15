@@ -1,4 +1,5 @@
 ﻿using APICatalogo.Context;
+using APICatalogo.Filters;
 using APICatalogo.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace APICatalogo.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<ProdutosController> _logger;
 
-        public ProdutosController(AppDbContext context)
+        public ProdutosController(AppDbContext context, ILogger<ProdutosController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -23,6 +26,7 @@ namespace APICatalogo.Controllers
             var produtos = await _context.Produtos.AsNoTracking().Take(10).ToListAsync();
             if(produtos is null)
             {
+                _logger.LogWarning($"Produtos não encontrados...");
                 return NotFound("Produtos não encontrados...");
             }
             return produtos;
@@ -34,6 +38,7 @@ namespace APICatalogo.Controllers
             var produto = await _context.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.ProdutoId == id);
             if(produto is null)
             {
+                _logger.LogWarning($"Produto não encontrado...");
                 return NotFound("Produto não encontrado...");
             }
             return produto;
@@ -44,7 +49,8 @@ namespace APICatalogo.Controllers
         {
             if(produto is null)
             {
-                return BadRequest();
+                _logger.LogWarning($"Produto inválido...");
+                return BadRequest("Produto inválido...");
             }
             _context.Produtos.Add(produto);
             _context.SaveChanges();
@@ -58,7 +64,8 @@ namespace APICatalogo.Controllers
         {
             if(id != produto.ProdutoId)
             {
-                return BadRequest();
+                _logger.LogWarning($"Produto inválido...");
+                return BadRequest("Produto inválido...");
             }
 
             _context.Entry(produto).State = EntityState.Modified;
@@ -75,7 +82,8 @@ namespace APICatalogo.Controllers
 
             if(produto is null)
             {
-                return NotFound("Produto não localizado...");
+                _logger.LogWarning($"Produto não encontrado...");
+                return NotFound("Produto não encontrado...");
             }
             _context.Produtos.Remove(produto);
             _context.SaveChanges();
