@@ -2,6 +2,7 @@
 using APICatalogo.DTOs;
 using APICatalogo.Filters;
 using APICatalogo.Models;
+using APICatalogo.Pagination;
 using APICatalogo.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -36,6 +37,16 @@ public class ProdutosController : ControllerBase
             _logger.LogWarning($"Produtos não encontrados");
             return NotFound("Produtos não encontrados");
         }
+
+        var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+
+        return Ok(produtosDto);
+    }
+
+    [HttpGet("pagination")]
+    public ActionResult<IEnumerable<ProdutoDTO>> Get([FromQuery] ProdutosParameters produtosParameters)
+    {
+        var produtos = _uof.ProdutoRepository.GetProdutos(produtosParameters);
 
         var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
 
